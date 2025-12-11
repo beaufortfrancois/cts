@@ -232,11 +232,19 @@ g.test('usage')
     const ctx = canvas.getContext('webgpu');
     assert(ctx instanceof GPUCanvasContext, 'Failed to get WebGPU context from canvas');
 
-    ctx.configure({
-      device: t.device,
-      format: 'rgba8unorm',
-      usage,
+    // Calling configure with TRANSIENT_ATTACHMENT should throw a TypeError.
+    const shouldThrowWithTypeError = (usage & GPUConst.TextureUsage.TRANSIENT_ATTACHMENT) !== 0;
+    t.shouldThrow(shouldThrowWithTypeError ? 'TypeError' : false, () => {
+      ctx.configure({
+        device: t.device,
+        format: 'rgba8unorm',
+        usage,
+      });
     });
+
+    if (shouldThrowWithTypeError) {
+      return;
+    }
 
     const configuration = ctx.getConfiguration();
     t.expect(configuration!.usage === usage);
